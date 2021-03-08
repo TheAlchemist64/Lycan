@@ -1,2 +1,2 @@
-# Lycan7DRL
+# Lycan
 My entry for 7DRL 2021
