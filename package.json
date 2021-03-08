@@ -4,7 +4,9 @@
   "description": "My entry for 7DRL 2021",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup --config",
+    "dev": "rollup --config --watch"
   },
   "repository": {
     "type": "git",
@@ -26,8 +28,10 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^11.2.0",
     "@rollup/plugin-typescript": "^8.2.0",
+    "progressbar.js": "^1.1.0",
     "rollup": "^2.40.0",
     "rot-js": "^2.1.5",
+    "tslib": "^2.1.0",
     "typescript": "^4.2.3"
   }
 }
