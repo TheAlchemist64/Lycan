@@ -5,7 +5,8 @@ export default {
   input: 'src/index.ts',
   output: {
     file: 'bin/bundle.js',
-    format: 'iife'
+    format: 'iife',
+    sourcemap: 'true'
   },
   plugins: [nodeResolve(), typescript()]
 };
