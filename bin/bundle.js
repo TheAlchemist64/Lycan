@@ -1474,6 +1474,19 @@ void main() {
         return Display;
     })();
 
+    var Glyph = /** @class */ (function () {
+        function Glyph(ch, fg, bg) {
+            if (bg === void 0) { bg = null; }
+            this.ch = ch;
+            this.fg = fg;
+            this.bg = bg;
+        }
+        Glyph.prototype.draw = function (display, x, y) {
+            display.draw(x, y, this.ch, this.fg, this.bg);
+        };
+        return Glyph;
+    }());
+
     var CAMERA_WIDTH = 80;
     var CAMERA_HEIGHT = 35;
     var Game = {
@@ -1483,12 +1496,13 @@ void main() {
             var canvas = this.display.getContainer();
             canvas.addEventListener('keydown', this.handleKeyDown);
             canvas.setAttribute('tabindex', "1");
-            canvas.focus();
             document.getElementById("game").appendChild(canvas);
-            this.display.draw(40, CAMERA_HEIGHT / 2, '@', 'white', null);
+            var player = new Glyph('@', 'white');
+            player.draw(this.display, 40, CAMERA_HEIGHT / 2);
             var focusReminder = document.getElementById('focus-reminder');
             canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
             canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
+            canvas.focus();
         },
         handleKeyDown: function (event) {
             console.log('keydown', event);

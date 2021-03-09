@@ -1,4 +1,5 @@
 import { Display } from "rot-js";
+import Glyph from './glyph';
 
 const MAP_WIDTH = 200;
 const MAP_HEIGHT = 200;
@@ -12,13 +13,14 @@ export default {
         const canvas = this.display.getContainer();
         canvas.addEventListener('keydown', this.handleKeyDown);
         canvas.setAttribute('tabindex', "1");
-        canvas.focus();
         document.getElementById("game").appendChild(canvas);
-        this.display.draw(40, CAMERA_HEIGHT/2, '@', 'white', null);
+        const player = new Glyph('@', 'white');
+        player.draw(this.display, 40, CAMERA_HEIGHT/2);
 
         const focusReminder = document.getElementById('focus-reminder');
         canvas.addEventListener('blur', () => { focusReminder.style.visibility = 'visible'; });
         canvas.addEventListener('focus', () => { focusReminder.style.visibility = 'hidden'; });
+        canvas.focus();
     },
     handleKeyDown(event) {
         console.log('keydown', event);
