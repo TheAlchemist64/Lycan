@@ -1,5 +1,3 @@
-import { Display } from "rot-js";
+import Game from "./game";
 
-let display: Display = new Display({ width: 80, height: 60 });
-display.draw(40, 30, '@', 'white', null);
-document.body.appendChild(display.getContainer());
+Game.init();

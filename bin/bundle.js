@@ -1474,8 +1474,17 @@ void main() {
         return Display;
     })();
 
-    var display = new Display({ width: 80, height: 60 });
-    display.draw(40, 30, '@', 'white', null);
-    document.body.appendChild(display.getContainer());
+    var CAMERA_WIDTH = 80;
+    var CAMERA_HEIGHT = 40;
+    var Game = {
+        display: Display,
+        init: function () {
+            this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
+            document.getElementById("game").appendChild(this.display.getContainer());
+            this.display.draw(40, 20, '@', 'white', null);
+        }
+    };
+
+    Game.init();
 
 }());
