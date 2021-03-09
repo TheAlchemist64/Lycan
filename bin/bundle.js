@@ -1475,13 +1475,23 @@ void main() {
     })();
 
     var CAMERA_WIDTH = 80;
-    var CAMERA_HEIGHT = 40;
+    var CAMERA_HEIGHT = 35;
     var Game = {
         display: Display,
         init: function () {
             this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
-            document.getElementById("game").appendChild(this.display.getContainer());
-            this.display.draw(40, 20, '@', 'white', null);
+            var canvas = this.display.getContainer();
+            canvas.addEventListener('keydown', this.handleKeyDown);
+            canvas.setAttribute('tabindex', "1");
+            canvas.focus();
+            document.getElementById("game").appendChild(canvas);
+            this.display.draw(40, CAMERA_HEIGHT / 2, '@', 'white', null);
+            var focusReminder = document.getElementById('focus-reminder');
+            canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
+            canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
+        },
+        handleKeyDown: function (event) {
+            console.log('keydown', event);
         }
     };
 

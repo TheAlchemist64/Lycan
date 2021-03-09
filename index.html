@@ -5,10 +5,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lycan (7DRL)</title>
+    <style type="text/css">
+        #game canvas { 
+            display: block; 
+            margin: auto; 
+        }
+        #focus-reminder {
+            color: silver;
+            position: absolute;
+            left: 50%;
+            top: 267px;
+            z-index: 2;
+        }
+    </style>
 </head>
 <body>
     <div id="status-bars"></div>
-    <div id="game"></div>
+    <figure>
+        <div id="game">
+            <h3 id="focus-reminder">Click Game to Play</h3>
+        </div>
+    </figure>
     <div id="player-info"></div>
     <script src="bin/bundle.js"></script>
 </body>
