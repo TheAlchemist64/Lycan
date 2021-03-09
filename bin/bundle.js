@@ -1487,6 +1487,19 @@ void main() {
         return Glyph;
     }());
 
+    var Actor = /** @class */ (function () {
+        function Actor(name, x, y, glyph) {
+            this.name = name;
+            this.x = x;
+            this.y = y;
+            this.glyph = glyph;
+        }
+        Actor.prototype.draw = function (display) {
+            this.glyph.draw(display, this.x, this.y);
+        };
+        return Actor;
+    }());
+
     var CAMERA_WIDTH = 80;
     var CAMERA_HEIGHT = 35;
     var Game = {
@@ -1497,8 +1510,8 @@ void main() {
             canvas.addEventListener('keydown', this.handleKeyDown);
             canvas.setAttribute('tabindex', "1");
             document.getElementById("game").appendChild(canvas);
-            var player = new Glyph('@', 'white');
-            player.draw(this.display, 40, CAMERA_HEIGHT / 2);
+            var player = new Actor('Player', 40, CAMERA_HEIGHT / 2, new Glyph('@', 'white'));
+            player.draw(this.display);
             var focusReminder = document.getElementById('focus-reminder');
             canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
             canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
