@@ -1821,7 +1821,7 @@ void main() {
             canvas.addEventListener('keydown', this);
             canvas.setAttribute('tabindex', "1");
             document.getElementById("game").appendChild(canvas);
-            this.player = new Actor('Player', 40, CAMERA_HEIGHT / 2, new Glyph('@', 'white'));
+            this.player = new Actor('Player', 40, Math.floor(CAMERA_HEIGHT / 2), new Glyph('@', 'white'));
             this.player.draw(this.display);
             var focusReminder = document.getElementById('focus-reminder');
             canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
