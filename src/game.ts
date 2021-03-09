@@ -24,12 +24,21 @@ export default {
         canvas.addEventListener('focus', () => { focusReminder.style.visibility = 'hidden'; });
         canvas.focus();
     },
-    handleEvent(event) {
-        event.preventDefault();
-        if (event.keyCode === KEYS.VK_RIGHT) { this.player.x++; }
-        if (event.keyCode === KEYS.VK_LEFT)  { this.player.x--; }
-        if (event.keyCode === KEYS.VK_DOWN)  { this.player.y++; }
-        if (event.keyCode === KEYS.VK_UP)    { this.player.y--; }
+    handleEvent(e) {
+        e.preventDefault();
+        switch(e.key) {
+            case 'ArrowRight':
+                this.player.x++;
+                break;
+            case 'ArrowLeft':
+                this.player.x--;
+                break;
+            case 'ArrowDown':
+                this.player.y++;
+                break;
+            case 'ArrowUp':
+                this.player.y--;
+        }
         this.display.clear();
         this.player.draw(this.display);
     }
