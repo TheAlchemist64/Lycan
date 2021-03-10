@@ -1719,7 +1719,7 @@ void main() {
             this.gameMap = new GameMap();
             this.gameMap.generate();
             this.gameMap.draw(this.display);
-            var pt = this.gameMap.getTile(1, 1);
+            var pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2), randInt(1, this.gameMap.height - 2));
             while (pt.type.name != 'floor') {
                 var x = randInt(1, this.gameMap.width - 2);
                 var y = randInt(1, this.gameMap.height - 2);

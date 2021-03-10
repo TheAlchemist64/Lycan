@@ -20,7 +20,8 @@ export default {
         this.gameMap = new GameMap();
         this.gameMap.generate();
         this.gameMap.draw(this.display);
-        let pt = this.gameMap.getTile(1, 1);
+        let pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2),
+        randInt(1, this.gameMap.height - 2));
         while (pt.type.name != 'floor') {
             let x = randInt(1, this.gameMap.width - 2);
             let y = randInt(1, this.gameMap.height - 2);
