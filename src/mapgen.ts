@@ -74,8 +74,13 @@ export default class GameMap {
 
         const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
         let floors = 0;
+        let lastDir: number[] = null;
         while (floors / this.tiles.size < this.percentFloor) {
-            let dirs = DIRS.filter(d => this.inBounds(x + d[0], y + d[1], 1));
+            let dirs = [...DIRS];
+            if (lastDir) {
+                dirs.push(lastDir);
+            }
+            dirs = DIRS.filter(d => this.inBounds(x + d[0], y + d[1], 1));
             let dir = RNG.getItem(dirs);
             x += dir[0];
             y += dir[1];
@@ -83,6 +88,7 @@ export default class GameMap {
                 this.setTile(x, y, TileTypes.floor);
                 floors++;
             }
+            lastDir = dir;
         }
     }
     draw(display: Display){

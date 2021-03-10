@@ -1537,6 +1537,29 @@ void main() {
         throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
     }
 
+    function __read(o, n) {
+        var m = typeof Symbol === "function" && o[Symbol.iterator];
+        if (!m) return o;
+        var i = m.call(o), r, ar = [], e;
+        try {
+            while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+        }
+        catch (error) { e = { error: error }; }
+        finally {
+            try {
+                if (r && !r.done && (m = i["return"])) m.call(i);
+            }
+            finally { if (e) throw e.error; }
+        }
+        return ar;
+    }
+
+    function __spreadArray(to, from) {
+        for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+            to[j] = from[i];
+        return to;
+    }
+
     var Torch;
     (function (Torch) {
         Torch[Torch["NONE"] = 0] = "NONE";
@@ -1645,8 +1668,13 @@ void main() {
             this.setTile(x, y, TileTypes.floor);
             var DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
             var floors = 0;
+            var lastDir = null;
             while (floors / this.tiles.size < this.percentFloor) {
-                var dirs = DIRS.filter(function (d) { return _this.inBounds(x + d[0], y + d[1], 1); });
+                var dirs = __spreadArray([], __read(DIRS));
+                if (lastDir) {
+                    dirs.push(lastDir);
+                }
+                dirs = DIRS.filter(function (d) { return _this.inBounds(x + d[0], y + d[1], 1); });
                 var dir = RNG$1.getItem(dirs);
                 x += dir[0];
                 y += dir[1];
@@ -1654,6 +1682,7 @@ void main() {
                     this.setTile(x, y, TileTypes.floor);
                     floors++;
                 }
+                lastDir = dir;
             }
         };
         GameMap.prototype.draw = function (display) {
