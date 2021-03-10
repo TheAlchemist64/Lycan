@@ -1,23 +1,26 @@
 import { Display, KEYS } from "rot-js";
 import Glyph from "./glyph";
 import Actor from "./actor";
+import GameMap from "./mapgen";
 
-const MAP_WIDTH = 200;
-const MAP_HEIGHT = 200;
 const CAMERA_WIDTH = 80;
 const CAMERA_HEIGHT = 35;
 
 export default {
     display: Display,
     player: Actor,
+    gameMap: GameMap,
     init(): void {
         this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
         const canvas = this.display.getContainer();
         canvas.addEventListener('keydown', this);
         canvas.setAttribute('tabindex', "1");
         document.getElementById("game").appendChild(canvas);
-        this.player = new Actor('Player', 40, Math.floor(CAMERA_HEIGHT/2), new Glyph('@', 'white'));
-        this.player.draw(this.display);
+        this.gameMap = new GameMap();
+        this.gameMap.generate();
+        this.gameMap.draw(this.display);
+        //this.player = new Actor('Player', 40, Math.floor(CAMERA_HEIGHT/2), new Glyph('@', 'white'));
+        //this.player.draw(this.display);
 
         const focusReminder = document.getElementById('focus-reminder');
         canvas.addEventListener('blur', () => { focusReminder.style.visibility = 'visible'; });

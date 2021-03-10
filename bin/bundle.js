@@ -136,7 +136,7 @@
             return clone.setState(this.getState());
         }
     }
-    new RNG().setSeed(Date.now());
+    var RNG$1 = new RNG().setSeed(Date.now());
 
     /**
      * @class Abstract display backend module
@@ -439,7 +439,7 @@
      * @class Tile backend
      * @private
      */
-    class Tile extends Canvas {
+    class Tile$1 extends Canvas {
         constructor() {
             super();
             this._colorCanvas = document.createElement("canvas");
@@ -1221,7 +1221,7 @@ void main() {
     const BACKENDS = {
         "hex": Hex,
         "rect": Rect,
-        "tile": Tile,
+        "tile": Tile$1,
         "tile-gl": TileGL,
         "term": Term
     };
@@ -1468,24 +1468,11 @@ void main() {
         }
         Display.Rect = Rect;
         Display.Hex = Hex;
-        Display.Tile = Tile;
+        Display.Tile = Tile$1;
         Display.TileGL = TileGL;
         Display.Term = Term;
         return Display;
     })();
-
-    var Glyph = /** @class */ (function () {
-        function Glyph(ch, fg, bg) {
-            if (bg === void 0) { bg = null; }
-            this.ch = ch;
-            this.fg = fg;
-            this.bg = bg;
-        }
-        Glyph.prototype.draw = function (display, x, y) {
-            display.draw(x, y, this.ch, this.fg, this.bg);
-        };
-        return Glyph;
-    }());
 
     var Actor = /** @class */ (function () {
         function Actor(name, x, y, glyph) {
@@ -1500,19 +1487,201 @@ void main() {
         return Actor;
     }());
 
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation.
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
+    ***************************************************************************** */
+
+    function __values(o) {
+        var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+        if (m) return m.call(o);
+        if (o && typeof o.length === "number") return {
+            next: function () {
+                if (o && i >= o.length) o = void 0;
+                return { value: o && o[i++], done: !o };
+            }
+        };
+        throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+    }
+
+    var Glyph = /** @class */ (function () {
+        function Glyph(ch, fg, bg) {
+            if (bg === void 0) { bg = null; }
+            this.ch = ch;
+            this.fg = fg;
+            this.bg = bg;
+        }
+        Glyph.prototype.draw = function (display, x, y) {
+            display.draw(x, y, this.ch, this.fg, this.bg);
+        };
+        return Glyph;
+    }());
+
+    var Torch;
+    (function (Torch) {
+        Torch[Torch["NONE"] = 0] = "NONE";
+        Torch[Torch["UNLIT"] = 1] = "UNLIT";
+        Torch[Torch["LIT"] = 2] = "LIT";
+    })(Torch || (Torch = {}));
+    var TileType = /** @class */ (function () {
+        function TileType(name, glyph, blockSight, blockMove, noise) {
+            if (noise === void 0) { noise = 1; }
+            this.name = name;
+            this.glyph = glyph;
+            this.blockSight = blockSight;
+            this.blockMove = blockMove;
+            this.noise = noise;
+        }
+        return TileType;
+    }());
+    var Tile = /** @class */ (function () {
+        function Tile(x, y, type, torch, actor) {
+            this.x = x;
+            this.y = y;
+            this.type = type;
+            this.torch = torch || Torch.NONE;
+            this.actor = actor;
+        }
+        Tile.prototype.draw = function (display) {
+            this.type.glyph.draw(display, this.x, this.y);
+        };
+        return Tile;
+    }());
+    var TileTypes = {
+        'wall': new TileType('wall', new Glyph('#', 'white'), true, true),
+        'floor': new TileType('floor', new Glyph('.', 'white'), false, false)
+    };
+
+    function randInt(a, b) {
+        return a + Math.floor(RNG$1.getUniform() * (b - a + 1));
+    }
+
+    var MAP_WIDTH = 80;
+    var MAP_HEIGHT = 35;
+    var GameMap = /** @class */ (function () {
+        function GameMap(width, height, percentFloor, tiles) {
+            if (percentFloor === void 0) { percentFloor = 0.6; }
+            this.width = MAP_WIDTH;
+            this.height = MAP_HEIGHT;
+            if (width) {
+                this.width = width;
+            }
+            if (height) {
+                this.height = height;
+            }
+            this.percentFloor = percentFloor;
+            this.tiles = tiles || new Map();
+        }
+        GameMap.key = function (x, y) {
+            return x + "," + y;
+        };
+        GameMap.prototype.inBounds = function (x, y, padding) {
+            if (padding === void 0) { padding = 0; }
+            return x > padding - 1 && x < this.width - padding && y > padding - 1 && y < this.height - padding;
+        };
+        GameMap.prototype.getTile = function (x, y) {
+            return this.tiles.get(x + "," + y);
+        };
+        GameMap.prototype.setTile = function (x, y, type, torch, actor) {
+            if (!this.tiles.has(GameMap.key(x, y))) {
+                //Tile doesn't exist
+                if (typeof type === undefined) {
+                    throw new Error("Tile at " + x + ", " + y + " needs a type (wall, floor, etc.)");
+                }
+                var tile = null;
+                if (type instanceof Tile) {
+                    tile = type;
+                }
+                else {
+                    tile = new Tile(x, y, type, torch, actor);
+                }
+                this.tiles.set(x + "," + y, tile);
+            }
+            else {
+                //tile already exists
+                var tile = this.getTile(x, y);
+                if (type && type instanceof TileType) {
+                    tile.type = type;
+                }
+                if (torch) {
+                    tile.torch = torch;
+                }
+                if (actor) {
+                    tile.actor = actor;
+                }
+            }
+        };
+        GameMap.prototype.generate = function () {
+            var _this = this;
+            //Initialize all map cells to Wall
+            for (var x_1 = 0; x_1 < this.width; x_1++) {
+                for (var y_1 = 0; y_1 < this.height; y_1++) {
+                    this.setTile(x_1, y_1, TileTypes.wall, Torch.NONE);
+                }
+            }
+            //pick random tile to start
+            var x = randInt(0, this.width);
+            var y = randInt(0, this.height);
+            this.setTile(x, y, TileTypes.floor);
+            var DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+            var floors = 0;
+            while (floors / this.tiles.size < this.percentFloor) {
+                var dirs = DIRS.filter(function (d) { return _this.inBounds(x + d[0], y + d[1], 1); });
+                var dir = RNG$1.getItem(dirs);
+                x += dir[0];
+                y += dir[1];
+                if (this.getTile(x, y).type.name == 'wall') {
+                    this.setTile(x, y, TileTypes.floor);
+                    floors++;
+                }
+            }
+        };
+        GameMap.prototype.draw = function (display) {
+            var e_1, _a;
+            try {
+                for (var _b = __values(this.tiles.values()), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var tile = _c.value;
+                    tile.draw(display);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+        };
+        return GameMap;
+    }());
+
     var CAMERA_WIDTH = 80;
     var CAMERA_HEIGHT = 35;
     var Game = {
         display: Display,
         player: Actor,
+        gameMap: GameMap,
         init: function () {
             this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
             var canvas = this.display.getContainer();
             canvas.addEventListener('keydown', this);
             canvas.setAttribute('tabindex', "1");
             document.getElementById("game").appendChild(canvas);
-            this.player = new Actor('Player', 40, Math.floor(CAMERA_HEIGHT / 2), new Glyph('@', 'white'));
-            this.player.draw(this.display);
+            this.gameMap = new GameMap();
+            this.gameMap.generate();
+            this.gameMap.draw(this.display);
+            //this.player = new Actor('Player', 40, Math.floor(CAMERA_HEIGHT/2), new Glyph('@', 'white'));
+            //this.player.draw(this.display);
             var focusReminder = document.getElementById('focus-reminder');
             canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
             canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });

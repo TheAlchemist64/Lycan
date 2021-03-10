@@ -29,14 +29,19 @@ export class Tile {
     type: TileType;
     torch: Torch;
     actor: Actor;
-    constructor(x: number, y: number, type: TileType, torch: Torch = Torch.NONE, actor: Actor = null) {
+    constructor(x: number, y: number, type: TileType, torch?: Torch, actor?: Actor) {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.torch = torch;
+        this.torch = torch || Torch.NONE;
         this.actor = actor;
     }
     draw(display: Display): void {
         this.type.glyph.draw(display, this.x, this.y);
     }
+}
+
+export const TileTypes = {
+    'wall': new TileType('wall', new Glyph('#', 'white'), true, true),
+    'floor': new TileType('floor', new Glyph('.', 'white'), false, false)
 }

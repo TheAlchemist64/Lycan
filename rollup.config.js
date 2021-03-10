@@ -8,5 +8,5 @@ export default {
     format: 'iife',
     sourcemap: 'true'
   },
-  plugins: [nodeResolve(), typescript()]
+  plugins: [nodeResolve(), typescript({downlevelIteration: true})]
 };
