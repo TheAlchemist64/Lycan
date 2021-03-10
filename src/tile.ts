@@ -14,7 +14,7 @@ export class TileType {
     blockSight: boolean;
     blockMove: boolean;
     noise: number;
-    constructor(name: string, glyph: Glyph, blockSight: boolean, blockMove: boolean, noise: number = 2){
+    constructor(name: string, glyph: Glyph, blockSight: boolean, blockMove: boolean, noise: number = 1){
         this.name = name;
         this.glyph = glyph;
         this.blockSight = blockSight;
@@ -35,5 +35,8 @@ export class Tile {
         this.type = type;
         this.torch = torch;
         this.actor = actor;
+    }
+    draw(display: Display): void {
+        this.type.glyph.draw(display, this.x, this.y);
     }
 }
