@@ -1474,6 +1474,19 @@ void main() {
         return Display;
     })();
 
+    var Glyph = /** @class */ (function () {
+        function Glyph(ch, fg, bg) {
+            if (bg === void 0) { bg = null; }
+            this.ch = ch;
+            this.fg = fg;
+            this.bg = bg;
+        }
+        Glyph.prototype.draw = function (display, x, y) {
+            display.draw(x, y, this.ch, this.fg, this.bg);
+        };
+        return Glyph;
+    }());
+
     var Actor = /** @class */ (function () {
         function Actor(name, x, y, glyph) {
             this.name = name;
@@ -1481,6 +1494,16 @@ void main() {
             this.y = y;
             this.glyph = glyph;
         }
+        Actor.prototype.move = function (gameMap, dx, dy) {
+            var nx = this.x + dx;
+            var ny = this.y + dy;
+            var tile = gameMap.getTile(nx, ny);
+            if (tile.type.name == 'wall') {
+                return;
+            }
+            this.x = nx;
+            this.y = ny;
+        };
         Actor.prototype.draw = function (display) {
             this.glyph.draw(display, this.x, this.y);
         };
@@ -1513,19 +1536,6 @@ void main() {
         };
         throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
     }
-
-    var Glyph = /** @class */ (function () {
-        function Glyph(ch, fg, bg) {
-            if (bg === void 0) { bg = null; }
-            this.ch = ch;
-            this.fg = fg;
-            this.bg = bg;
-        }
-        Glyph.prototype.draw = function (display, x, y) {
-            display.draw(x, y, this.ch, this.fg, this.bg);
-        };
-        return Glyph;
-    }());
 
     var Torch;
     (function (Torch) {
@@ -1680,8 +1690,14 @@ void main() {
             this.gameMap = new GameMap();
             this.gameMap.generate();
             this.gameMap.draw(this.display);
-            //this.player = new Actor('Player', 40, Math.floor(CAMERA_HEIGHT/2), new Glyph('@', 'white'));
-            //this.player.draw(this.display);
+            var pt = this.gameMap.getTile(1, 1);
+            while (pt.type.name != 'floor') {
+                var x = randInt(1, this.gameMap.width - 2);
+                var y = randInt(1, this.gameMap.height - 2);
+                pt = this.gameMap.getTile(x, y);
+            }
+            this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
+            this.player.draw(this.display);
             var focusReminder = document.getElementById('focus-reminder');
             canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
             canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
@@ -1691,18 +1707,19 @@ void main() {
             e.preventDefault();
             switch (e.key) {
                 case 'ArrowRight':
-                    this.player.x++;
+                    this.player.move(this.gameMap, 1, 0);
                     break;
                 case 'ArrowLeft':
-                    this.player.x--;
+                    this.player.move(this.gameMap, -1, 0);
                     break;
                 case 'ArrowDown':
-                    this.player.y++;
+                    this.player.move(this.gameMap, 0, 1);
                     break;
                 case 'ArrowUp':
-                    this.player.y--;
+                    this.player.move(this.gameMap, 0, -1);
             }
             this.display.clear();
+            this.gameMap.draw(this.display);
             this.player.draw(this.display);
         }
     };
