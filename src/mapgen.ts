@@ -1,4 +1,5 @@
 import { Display, RNG } from "rot-js";
+import MapGen from "rot-js/lib/map/index";
 import Actor from "./actor";
 import { TileType, Torch, Tile, TileTypes } from "./tile";
 import { randInt } from "./utils";
@@ -11,7 +12,7 @@ export default class GameMap {
     height: number = MAP_HEIGHT;
     percentFloor: number;
     tiles: Map<string, Tile>;
-    constructor(width?: number, height?: number, percentFloor: number = 0.6, tiles?: Map<string, Tile>) {
+    constructor(width?: number, height?: number, percentFloor: number = 0.5, tiles?: Map<string, Tile>) {
         if (width) {
             this.width = width;
         }
@@ -68,8 +69,11 @@ export default class GameMap {
             }
         }
         //pick random tile to start
-        let x = randInt(0, this.width);
-        let y = randInt(0, this.height);
+        //let x = randInt(0, this.width);
+        //let y = randInt(0, this.height);
+        //start from center
+        /* let x = Math.floor(this.width / 2);
+        let y = Math.floor(this.height / 2);
         this.setTile(x, y, TileTypes.floor);
 
         const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
@@ -80,7 +84,7 @@ export default class GameMap {
             if (lastDir) {
                 dirs.push(lastDir);
             }
-            dirs = DIRS.filter(d => this.inBounds(x + d[0], y + d[1], 1));
+            dirs = dirs.filter(d => this.inBounds(x + d[0], y + d[1], 1));
             let dir = RNG.getItem(dirs);
             x += dir[0];
             y += dir[1];
@@ -89,8 +93,29 @@ export default class GameMap {
                 floors++;
             }
             lastDir = dir;
+        } */
+        //let digger = new MapGen.Digger(this.width, this.height);
+        let digger = new MapGen.Cellular(this.width - 2, this.height - 2);
+        digger.randomize(0.5);
+        let cb = (x, y, value) => {
+            this.setTile(x + 1, y + 1, value ? TileTypes.wall : TileTypes.floor);
         }
+        for(let i = 0; i < 2; i++){
+            digger.create(cb);
+        }
+        digger.connect(cb, 0);
     }
+    /* checkFree(x: number, y: number, dir: number[], length: number): boolean {
+        let valid = true;
+        for(let i = 1; i < length + 1; i++){
+            let tile = this.getTile(x + dir[0] * i, y + dir[1] * i);
+            if (tile.type.name == 'floor'){
+                valid = false;
+                break;
+            }
+        }
+        return valid;
+    } */
     draw(display: Display){
         for(let tile of this.tiles.values()) {
             tile.draw(display);
