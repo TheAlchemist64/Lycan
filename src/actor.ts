@@ -16,6 +16,9 @@ export default class Actor {
     move(gameMap: GameMap, dx: number, dy: number): void {
         let nx = this.x + dx;
         let ny = this.y + dy;
+        if (!gameMap.inBounds(nx, ny)) {
+            return;
+        }
         let tile = gameMap.getTile(nx, ny);
         if (tile.type.name == 'wall') {
             return;
@@ -23,7 +26,13 @@ export default class Actor {
         this.x = nx;
         this.y = ny;
     }
-    draw(display: Display): void {
-        this.glyph.draw(display, this.x, this.y);
+    draw(display: Display, x?: number, y?: number): void {
+        if (x === undefined) {
+            x = this.x;
+        }
+        if (y === undefined) {
+            y = this.y;
+        }
+        this.glyph.draw(display, x, y);
     }
 }

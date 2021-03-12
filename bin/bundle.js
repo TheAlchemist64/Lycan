@@ -3410,6 +3410,9 @@ void main() {
         Actor.prototype.move = function (gameMap, dx, dy) {
             var nx = this.x + dx;
             var ny = this.y + dy;
+            if (!gameMap.inBounds(nx, ny)) {
+                return;
+            }
             var tile = gameMap.getTile(nx, ny);
             if (tile.type.name == 'wall') {
                 return;
@@ -3417,38 +3420,17 @@ void main() {
             this.x = nx;
             this.y = ny;
         };
-        Actor.prototype.draw = function (display) {
-            this.glyph.draw(display, this.x, this.y);
+        Actor.prototype.draw = function (display, x, y) {
+            if (x === undefined) {
+                x = this.x;
+            }
+            if (y === undefined) {
+                y = this.y;
+            }
+            this.glyph.draw(display, x, y);
         };
         return Actor;
     }());
-
-    /*! *****************************************************************************
-    Copyright (c) Microsoft Corporation.
-
-    Permission to use, copy, modify, and/or distribute this software for any
-    purpose with or without fee is hereby granted.
-
-    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-    PERFORMANCE OF THIS SOFTWARE.
-    ***************************************************************************** */
-
-    function __values(o) {
-        var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-        if (m) return m.call(o);
-        if (o && typeof o.length === "number") return {
-            next: function () {
-                if (o && i >= o.length) o = void 0;
-                return { value: o && o[i++], done: !o };
-            }
-        };
-        throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-    }
 
     var Torch;
     (function (Torch) {
@@ -3475,8 +3457,14 @@ void main() {
             this.torch = torch || Torch.NONE;
             this.actor = actor;
         }
-        Tile.prototype.draw = function (display) {
-            this.type.glyph.draw(display, this.x, this.y);
+        Tile.prototype.draw = function (display, x, y) {
+            if (x === undefined) {
+                x = this.x;
+            }
+            if (y === undefined) {
+                y = this.y;
+            }
+            this.type.glyph.draw(display, x, y);
         };
         return Tile;
     }());
@@ -3485,8 +3473,8 @@ void main() {
         'floor': new TileType('floor', new Glyph('.', 'white'), false, false)
     };
 
-    var MAP_WIDTH = 80;
-    var MAP_HEIGHT = 35;
+    var MAP_WIDTH = 200;
+    var MAP_HEIGHT = 200;
     var GameMap = /** @class */ (function () {
         function GameMap(width, height, percentFloor, tiles) {
             if (percentFloor === void 0) { percentFloor = 0.5; }
@@ -3509,26 +3497,27 @@ void main() {
             return x > padding - 1 && x < this.width - padding && y > padding - 1 && y < this.height - padding;
         };
         GameMap.prototype.getTile = function (x, y) {
-            return this.tiles.get(x + "," + y);
+            return this.tiles.get(GameMap.key(x, y));
         };
         GameMap.prototype.setTile = function (x, y, type, torch, actor) {
-            if (!this.tiles.has(GameMap.key(x, y))) {
+            this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+            /* if (!this.tiles.has(GameMap.key(x, y))) {
                 //Tile doesn't exist
                 if (typeof type === undefined) {
-                    throw new Error("Tile at " + x + ", " + y + " needs a type (wall, floor, etc.)");
+                    throw new Error(`Tile at ${x}, ${y} needs a type (wall, floor, etc.)`);
                 }
-                var tile = null;
+                let tile: Tile = null;
                 if (type instanceof Tile) {
                     tile = type;
                 }
-                else {
+                else{
                     tile = new Tile(x, y, type, torch, actor);
                 }
-                this.tiles.set(x + "," + y, tile);
+                this.tiles.set(`${x},${y}`, tile);
             }
             else {
                 //tile already exists
-                var tile = this.getTile(x, y);
+                let tile: Tile = this.getTile(x, y);
                 if (type && type instanceof TileType) {
                     tile.type = type;
                 }
@@ -3538,7 +3527,7 @@ void main() {
                 if (actor) {
                     tile.actor = actor;
                 }
-            }
+            } */
         };
         GameMap.prototype.generate = function () {
             var _this = this;
@@ -3575,10 +3564,10 @@ void main() {
                 lastDir = dir;
             } */
             //let digger = new MapGen.Digger(this.width, this.height);
-            var digger = new MapGen.Cellular(this.width - 2, this.height - 2);
+            var digger = new MapGen.Cellular(this.width, this.height);
             digger.randomize(0.5);
             var cb = function (x, y, value) {
-                _this.setTile(x + 1, y + 1, value ? TileTypes.wall : TileTypes.floor);
+                _this.setTile(x, y, value ? TileTypes.wall : TileTypes.floor);
             };
             for (var i = 0; i < 2; i++) {
                 digger.create(cb);
@@ -3596,20 +3585,16 @@ void main() {
             }
             return valid;
         } */
-        GameMap.prototype.draw = function (display) {
-            var e_1, _a;
-            try {
-                for (var _b = __values(this.tiles.values()), _c = _b.next(); !_c.done; _c = _b.next()) {
-                    var tile = _c.value;
-                    tile.draw(display);
+        GameMap.prototype.draw = function (display, x, y, w, h) {
+            for (var i = 0; i < w; i++) {
+                for (var j = 0; j < h; j++) {
+                    if (!this.inBounds(x + i, y + j)) {
+                        display.draw(i, j, '#', 'white', null);
+                    }
+                    else {
+                        this.getTile(x + i, y + j).draw(display, i, j);
+                    }
                 }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
-                }
-                finally { if (e_1) throw e_1.error; }
             }
         };
         return GameMap;
@@ -3619,12 +3604,31 @@ void main() {
         return a + Math.floor(RNG$1.getUniform() * (b - a + 1));
     }
 
+    var Camera = /** @class */ (function () {
+        function Camera(width, height) {
+            this.width = width;
+            this.height = height;
+        }
+        Camera.prototype.draw = function (actor, gameMap, display) {
+            var half_width = Math.floor(this.width / 2);
+            var half_height = Math.floor(this.height / 2);
+            var x = actor.x - half_width;
+            var y = actor.y - half_height;
+            //x = clamp(x, 0, MAP_WIDTH - this.width);
+            //y = clamp(y, 0, MAP_HEIGHT - this.height);
+            gameMap.draw(display, x, y, this.width, this.height);
+            actor.draw(display, half_width, half_height);
+        };
+        return Camera;
+    }());
+
     var CAMERA_WIDTH = 80;
     var CAMERA_HEIGHT = 35;
     var Game = {
         display: Display,
         player: Actor,
         gameMap: GameMap,
+        camera: Camera,
         init: function () {
             this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
             var canvas = this.display.getContainer();
@@ -3633,7 +3637,6 @@ void main() {
             document.getElementById("game").appendChild(canvas);
             this.gameMap = new GameMap();
             this.gameMap.generate();
-            this.gameMap.draw(this.display);
             var pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2), randInt(1, this.gameMap.height - 2));
             while (pt.type.name != 'floor') {
                 var x = randInt(1, this.gameMap.width - 2);
@@ -3641,7 +3644,8 @@ void main() {
                 pt = this.gameMap.getTile(x, y);
             }
             this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
-            this.player.draw(this.display);
+            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+            this.camera.draw(this.player, this.gameMap, this.display);
             var focusReminder = document.getElementById('focus-reminder');
             canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
             canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
@@ -3661,10 +3665,10 @@ void main() {
                     break;
                 case 'ArrowUp':
                     this.player.move(this.gameMap, 0, -1);
+                    break;
             }
             this.display.clear();
-            this.gameMap.draw(this.display);
-            this.player.draw(this.display);
+            this.camera.draw(this.player, this.gameMap, this.display);
         }
     };
 

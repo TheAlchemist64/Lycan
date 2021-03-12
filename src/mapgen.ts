@@ -4,8 +4,8 @@ import Actor from "./actor";
 import { TileType, Torch, Tile, TileTypes } from "./tile";
 import { randInt } from "./utils";
 
-export const MAP_WIDTH = 80;
-export const MAP_HEIGHT = 35;
+export const MAP_WIDTH = 200;
+export const MAP_HEIGHT = 200;
 
 export default class GameMap {
     width: number = MAP_WIDTH;
@@ -29,10 +29,11 @@ export default class GameMap {
         return x > padding - 1 && x < this.width - padding && y > padding - 1 && y < this.height - padding;
     }
     getTile(x: number, y: number): Tile {
-        return this.tiles.get(`${x},${y}`);
+        return this.tiles.get(GameMap.key(x, y));
     }
-    setTile(x: number, y: number, type?: TileType | Tile, torch?: Torch, actor?: Actor) {
-        if (!this.tiles.has(GameMap.key(x, y))) {
+    setTile(x: number, y: number, type?: TileType, torch?: Torch, actor?: Actor) {
+        this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+        /* if (!this.tiles.has(GameMap.key(x, y))) {
             //Tile doesn't exist
             if (typeof type === undefined) {
                 throw new Error(`Tile at ${x}, ${y} needs a type (wall, floor, etc.)`);
@@ -58,7 +59,7 @@ export default class GameMap {
             if (actor) {
                 tile.actor = actor;
             }
-        }
+        } */
     }
     generate(): void {
 
@@ -95,10 +96,10 @@ export default class GameMap {
             lastDir = dir;
         } */
         //let digger = new MapGen.Digger(this.width, this.height);
-        let digger = new MapGen.Cellular(this.width - 2, this.height - 2);
+        let digger = new MapGen.Cellular(this.width, this.height);
         digger.randomize(0.5);
         let cb = (x, y, value) => {
-            this.setTile(x + 1, y + 1, value ? TileTypes.wall : TileTypes.floor);
+            this.setTile(x, y, value ? TileTypes.wall : TileTypes.floor);
         }
         for(let i = 0; i < 2; i++){
             digger.create(cb);
@@ -116,9 +117,16 @@ export default class GameMap {
         }
         return valid;
     } */
-    draw(display: Display){
-        for(let tile of this.tiles.values()) {
-            tile.draw(display);
+    draw(display: Display, x: number, y: number, w: number, h: number){
+        for(let i = 0; i < w; i++){
+            for(let j = 0; j < h; j++){
+                if (!this.inBounds(x + i, y + j)) {
+                    display.draw(i, j, '#', 'white', null);
+                }
+                else {
+                    this.getTile(x + i, y + j).draw(display, i, j);
+                }
+            }
         }
     }
 }
