@@ -1,10 +1,13 @@
-import { Display, KEYS, RNG } from "rot-js";
+import { Display } from "rot-js";
 import Glyph from "./glyph";
 import Actor from "./actor";
-import GameMap, { MAP_WIDTH } from "./mapgen";
+import GameMap from "./map";
 import { randInt } from "./utils";
 import Camera from "./camera";
+import { generate } from "./mapgen";
 
+const MAP_WIDTH = 200;
+const MAP_HEIGHT = 200;
 const CAMERA_WIDTH = 80;
 const CAMERA_HEIGHT = 35;
 
@@ -19,8 +22,7 @@ export default {
         canvas.addEventListener('keydown', this);
         canvas.setAttribute('tabindex', "1");
         document.getElementById("game").appendChild(canvas);
-        this.gameMap = new GameMap();
-        this.gameMap.generate();
+        this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
         let pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2),
         randInt(1, this.gameMap.height - 2));
         while (pt.type.name != 'floor') {

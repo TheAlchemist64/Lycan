@@ -1,6 +1,6 @@
 import { Display } from "rot-js";
 import Glyph from "./glyph";
-import GameMap from "./mapgen";
+import GameMap from "./map";
 
 export default class Actor {
     name: string;

@@ -3473,20 +3473,14 @@ void main() {
         'floor': new TileType('floor', new Glyph('.', 'white'), false, false)
     };
 
-    var MAP_WIDTH = 200;
-    var MAP_HEIGHT = 200;
     var GameMap = /** @class */ (function () {
-        function GameMap(width, height, percentFloor, tiles) {
-            if (percentFloor === void 0) { percentFloor = 0.5; }
-            this.width = MAP_WIDTH;
-            this.height = MAP_HEIGHT;
+        function GameMap(width, height, tiles) {
             if (width) {
                 this.width = width;
             }
             if (height) {
                 this.height = height;
             }
-            this.percentFloor = percentFloor;
             this.tiles = tiles || new Map();
         }
         GameMap.key = function (x, y) {
@@ -3501,51 +3495,6 @@ void main() {
         };
         GameMap.prototype.setTile = function (x, y, type, torch, actor) {
             this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
-        };
-        GameMap.prototype.generate = function () {
-            var _this = this;
-            //Initialize all map cells to Wall
-            for (var x = 0; x < this.width; x++) {
-                for (var y = 0; y < this.height; y++) {
-                    this.setTile(x, y, TileTypes.wall, Torch.NONE);
-                }
-            }
-            //pick random tile to start
-            //let x = randInt(0, this.width);
-            //let y = randInt(0, this.height);
-            //start from center
-            /* let x = Math.floor(this.width / 2);
-            let y = Math.floor(this.height / 2);
-            this.setTile(x, y, TileTypes.floor);
-
-            const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-            let floors = 0;
-            let lastDir: number[] = null;
-            while (floors / this.tiles.size < this.percentFloor) {
-                let dirs = [...DIRS];
-                if (lastDir) {
-                    dirs.push(lastDir);
-                }
-                dirs = dirs.filter(d => this.inBounds(x + d[0], y + d[1], 1));
-                let dir = RNG.getItem(dirs);
-                x += dir[0];
-                y += dir[1];
-                if (this.getTile(x, y).type.name == 'wall') {
-                    this.setTile(x, y, TileTypes.floor);
-                    floors++;
-                }
-                lastDir = dir;
-            } */
-            //let digger = new MapGen.Digger(this.width, this.height);
-            var digger = new MapGen.Cellular(this.width, this.height);
-            digger.randomize(0.5);
-            var cb = function (x, y, value) {
-                _this.setTile(x, y, value ? TileTypes.wall : TileTypes.floor);
-            };
-            for (var i = 0; i < 2; i++) {
-                digger.create(cb);
-            }
-            digger.connect(cb, 0);
         };
         GameMap.prototype.draw = function (display, x, y, w, h) {
             for (var i = 0; i < w; i++) {
@@ -3576,14 +3525,34 @@ void main() {
             var half_height = Math.floor(this.height / 2);
             var x = actor.x - half_width;
             var y = actor.y - half_height;
-            //x = clamp(x, 0, MAP_WIDTH - this.width);
-            //y = clamp(y, 0, MAP_HEIGHT - this.height);
             gameMap.draw(display, x, y, this.width, this.height);
             actor.draw(display, half_width, half_height);
         };
         return Camera;
     }());
 
+    function generate(width, height) {
+        var result = new GameMap(width, height);
+        //Initialize all map cells to Wall
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                result.setTile(x, y, TileTypes.wall, Torch.NONE);
+            }
+        }
+        var digger = new MapGen.Cellular(width, height);
+        digger.randomize(0.5);
+        var cb = function (x, y, value) {
+            result.setTile(x, y, value ? TileTypes.wall : TileTypes.floor);
+        };
+        for (var i = 0; i < 2; i++) {
+            digger.create(cb);
+        }
+        digger.connect(cb, 0);
+        return result;
+    }
+
+    var MAP_WIDTH = 200;
+    var MAP_HEIGHT = 200;
     var CAMERA_WIDTH = 80;
     var CAMERA_HEIGHT = 35;
     var Game = {
@@ -3597,8 +3566,7 @@ void main() {
             canvas.addEventListener('keydown', this);
             canvas.setAttribute('tabindex', "1");
             document.getElementById("game").appendChild(canvas);
-            this.gameMap = new GameMap();
-            this.gameMap.generate();
+            this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
             var pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2), randInt(1, this.gameMap.height - 2));
             while (pt.type.name != 'floor') {
                 var x = randInt(1, this.gameMap.width - 2);
