@@ -3501,33 +3501,6 @@ void main() {
         };
         GameMap.prototype.setTile = function (x, y, type, torch, actor) {
             this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
-            /* if (!this.tiles.has(GameMap.key(x, y))) {
-                //Tile doesn't exist
-                if (typeof type === undefined) {
-                    throw new Error(`Tile at ${x}, ${y} needs a type (wall, floor, etc.)`);
-                }
-                let tile: Tile = null;
-                if (type instanceof Tile) {
-                    tile = type;
-                }
-                else{
-                    tile = new Tile(x, y, type, torch, actor);
-                }
-                this.tiles.set(`${x},${y}`, tile);
-            }
-            else {
-                //tile already exists
-                let tile: Tile = this.getTile(x, y);
-                if (type && type instanceof TileType) {
-                    tile.type = type;
-                }
-                if (torch) {
-                    tile.torch = torch;
-                }
-                if (actor) {
-                    tile.actor = actor;
-                }
-            } */
         };
         GameMap.prototype.generate = function () {
             var _this = this;
@@ -3574,17 +3547,6 @@ void main() {
             }
             digger.connect(cb, 0);
         };
-        /* checkFree(x: number, y: number, dir: number[], length: number): boolean {
-            let valid = true;
-            for(let i = 1; i < length + 1; i++){
-                let tile = this.getTile(x + dir[0] * i, y + dir[1] * i);
-                if (tile.type.name == 'floor'){
-                    valid = false;
-                    break;
-                }
-            }
-            return valid;
-        } */
         GameMap.prototype.draw = function (display, x, y, w, h) {
             for (var i = 0; i < w; i++) {
                 for (var j = 0; j < h; j++) {

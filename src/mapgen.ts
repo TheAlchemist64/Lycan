@@ -2,7 +2,6 @@ import { Display, RNG } from "rot-js";
 import MapGen from "rot-js/lib/map/index";
 import Actor from "./actor";
 import { TileType, Torch, Tile, TileTypes } from "./tile";
-import { randInt } from "./utils";
 
 export const MAP_WIDTH = 200;
 export const MAP_HEIGHT = 200;
@@ -33,33 +32,6 @@ export default class GameMap {
     }
     setTile(x: number, y: number, type?: TileType, torch?: Torch, actor?: Actor) {
         this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
-        /* if (!this.tiles.has(GameMap.key(x, y))) {
-            //Tile doesn't exist
-            if (typeof type === undefined) {
-                throw new Error(`Tile at ${x}, ${y} needs a type (wall, floor, etc.)`);
-            }
-            let tile: Tile = null;
-            if (type instanceof Tile) {
-                tile = type;
-            } 
-            else{
-                tile = new Tile(x, y, type, torch, actor);
-            }
-            this.tiles.set(`${x},${y}`, tile);
-        } 
-        else {
-            //tile already exists
-            let tile: Tile = this.getTile(x, y);
-            if (type && type instanceof TileType) {
-                tile.type = type;
-            }
-            if (torch) {
-                tile.torch = torch;
-            }
-            if (actor) {
-                tile.actor = actor;
-            }
-        } */
     }
     generate(): void {
 
@@ -106,17 +78,6 @@ export default class GameMap {
         }
         digger.connect(cb, 0);
     }
-    /* checkFree(x: number, y: number, dir: number[], length: number): boolean {
-        let valid = true;
-        for(let i = 1; i < length + 1; i++){
-            let tile = this.getTile(x + dir[0] * i, y + dir[1] * i);
-            if (tile.type.name == 'floor'){
-                valid = false;
-                break;
-            }
-        }
-        return valid;
-    } */
     draw(display: Display, x: number, y: number, w: number, h: number){
         for(let i = 0; i < w; i++){
             for(let j = 0; j < h; j++){
