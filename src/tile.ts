@@ -36,14 +36,19 @@ export class Tile {
         this.torch = torch || Torch.NONE;
         this.actor = actor;
     }
-    draw(display: Display, x?: number, y?: number): void {
+    draw(display: Display, x?: number, y?: number, excludeActor?: boolean): void {
         if (x === undefined) {
             x = this.x;
         }
         if (y === undefined) {
             y = this.y;
         }
-        this.type.glyph.draw(display, x, y);
+        if (this.actor && !excludeActor){
+            this.actor.draw(display, x, y);
+        }
+        else{
+            this.type.glyph.draw(display, x, y);
+        }
     }
 }
 

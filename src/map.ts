@@ -51,14 +51,16 @@ export default class GameMap {
         }
         return tile;
     }
-    draw(display: Display, x: number, y: number, w: number, h: number){
+    draw(display: Display, x: number, y: number, w: number, h: number, excludes?: string[]){
         for(let i = 0; i < w; i++){
             for(let j = 0; j < h; j++){
                 if (!this.inBounds(x + i, y + j)) {
                     display.draw(i, j, '#', 'white', null);
                 }
                 else {
-                    this.getTile(x + i, y + j).draw(display, i, j);
+                    let tile = this.getTile(x + i, y + j);
+                    let excludeActor = tile.actor && excludes && excludes.indexOf(tile.actor.name) > -1;
+                    tile.draw(display, i, j, excludeActor);
                 }
             }
         }

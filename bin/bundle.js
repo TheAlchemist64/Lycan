@@ -3460,14 +3460,19 @@ void main() {
             this.torch = torch || Torch.NONE;
             this.actor = actor;
         }
-        Tile.prototype.draw = function (display, x, y) {
+        Tile.prototype.draw = function (display, x, y, excludeActor) {
             if (x === undefined) {
                 x = this.x;
             }
             if (y === undefined) {
                 y = this.y;
             }
-            this.type.glyph.draw(display, x, y);
+            if (this.actor && !excludeActor) {
+                this.actor.draw(display, x, y);
+            }
+            else {
+                this.type.glyph.draw(display, x, y);
+            }
         };
         return Tile;
     }());
@@ -3523,14 +3528,16 @@ void main() {
             }
             return tile;
         };
-        GameMap.prototype.draw = function (display, x, y, w, h) {
+        GameMap.prototype.draw = function (display, x, y, w, h, excludes) {
             for (var i = 0; i < w; i++) {
                 for (var j = 0; j < h; j++) {
                     if (!this.inBounds(x + i, y + j)) {
                         display.draw(i, j, '#', 'white', null);
                     }
                     else {
-                        this.getTile(x + i, y + j).draw(display, i, j);
+                        var tile = this.getTile(x + i, y + j);
+                        var excludeActor = tile.actor && excludes && excludes.indexOf(tile.actor.name) > -1;
+                        tile.draw(display, i, j, excludeActor);
                     }
                 }
             }
@@ -3548,7 +3555,7 @@ void main() {
             var half_height = Math.floor(this.height / 2);
             var x = actor.x - half_width;
             var y = actor.y - half_height;
-            gameMap.draw(display, x, y, this.width, this.height);
+            gameMap.draw(display, x, y, this.width, this.height, ['Player']);
             actor.draw(display, half_width, half_height);
         };
         return Camera;
@@ -3644,6 +3651,10 @@ void main() {
             this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
             var pt = this.gameMap.placeActor();
             this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
+            var mt = this.gameMap.placeActor();
+            this.monster = new Actor('Rat', mt.x, mt.y, new Glyph('r', 'lightbrown'));
+            this.gameMap.setTile(mt.x, mt.y, this.monster);
+            console.log(mt);
             this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
             this.camera.draw(this.player, this.gameMap, this.display);
             this.refocus();
@@ -3653,7 +3664,8 @@ void main() {
                 rng: this.mapRNG,
                 width: MAP_WIDTH,
                 height: MAP_HEIGHT,
-                player: this.player
+                player: this.player,
+                monster: this.monster
             };
             Store.save("" + this.saveName, data);
         },
@@ -3664,6 +3676,8 @@ void main() {
             var glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
             this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
             this.gameMap.setTile(this.player.x, this.player.y, this.player);
+            this.monster = new Actor(data.monster.name, data.monster.x, data.monster.y, glyph);
+            this.gameMap.setTile(this.monster.x, this.monster.y, this.monster);
             this.mapRNG = data.rng;
             this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
             this.camera.draw(this.player, this.gameMap, this.display);

@@ -70,8 +70,12 @@ export default {
         RNG.setSeed((Date.now())+Math.random());
         this.mapRNG = RNG.getState();
         this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
-        let pt = this.gameMap.placeActor()
+        let pt = this.gameMap.placeActor();
         this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
+        let mt = this.gameMap.placeActor();
+        this.monster = new Actor('Rat', mt.x, mt.y, new Glyph('r', 'lightbrown'));
+        this.gameMap.setTile(mt.x, mt.y, this.monster);
+        console.log(mt);
         this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         this.camera.draw(this.player, this.gameMap, this.display);
         this.refocus();
@@ -81,7 +85,8 @@ export default {
             rng: this.mapRNG,
             width: MAP_WIDTH,
             height: MAP_HEIGHT,
-            player: this.player
+            player: this.player,
+            monster: this.monster
         }
         Store.save(`${this.saveName}`, data);
     },
@@ -92,6 +97,8 @@ export default {
         let glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
         this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
         this.gameMap.setTile(this.player.x, this.player.y, this.player);
+        this.monster = new Actor(data.monster.name, data.monster.x, data.monster.y, glyph);
+        this.gameMap.setTile(this.monster.x, this.monster.y, this.monster);
         this.mapRNG = data.rng;
         this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         this.camera.draw(this.player, this.gameMap, this.display);

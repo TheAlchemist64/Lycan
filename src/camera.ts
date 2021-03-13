@@ -14,7 +14,7 @@ export default class Camera {
         let half_height = Math.floor(this.height/ 2);
         let x = actor.x - half_width;
         let y = actor.y - half_height;
-        gameMap.draw(display, x, y, this.width, this.height);
+        gameMap.draw(display, x, y, this.width, this.height, ['Player']);
         actor.draw(display, half_width, half_height);
     }
 }

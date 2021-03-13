@@ -8,6 +8,7 @@ export interface GameData {
     width: number;
     height: number;
     player: Actor;
+    monster: Actor;
 }
 
 export default {
