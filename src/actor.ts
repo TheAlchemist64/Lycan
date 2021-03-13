@@ -13,18 +13,20 @@ export default class Actor {
         this.y = y;
         this.glyph = glyph;
     }
-    move(gameMap: GameMap, dx: number, dy: number): void {
+    move(gameMap: GameMap, dx: number, dy: number): boolean {
         let nx = this.x + dx;
         let ny = this.y + dy;
         if (!gameMap.inBounds(nx, ny)) {
-            return;
+            return false;
         }
         let tile = gameMap.getTile(nx, ny);
         if (tile.type.name == 'wall') {
-            return;
+            return false;
         }
         this.x = nx;
         this.y = ny;
+
+        return true;
     }
     draw(display: Display, x?: number, y?: number): void {
         if (x === undefined) {

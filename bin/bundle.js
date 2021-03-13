@@ -3411,14 +3411,15 @@ void main() {
             var nx = this.x + dx;
             var ny = this.y + dy;
             if (!gameMap.inBounds(nx, ny)) {
-                return;
+                return false;
             }
             var tile = gameMap.getTile(nx, ny);
             if (tile.type.name == 'wall') {
-                return;
+                return false;
             }
             this.x = nx;
             this.y = ny;
+            return true;
         };
         Actor.prototype.draw = function (display, x, y) {
             if (x === undefined) {
@@ -3551,6 +3552,15 @@ void main() {
         return result;
     }
 
+    var Store = {
+        save: function (name, data) {
+            localStorage.setItem("" + name, JSON.stringify(data));
+        },
+        load: function (name) {
+            return JSON.parse(localStorage.getItem("" + name));
+        }
+    };
+
     var MAP_WIDTH = 200;
     var MAP_HEIGHT = 200;
     var CAMERA_WIDTH = 80;
@@ -3558,6 +3568,8 @@ void main() {
     var Game = {
         display: Display,
         player: Actor,
+        saveName: String,
+        mapRNG: Array,
         gameMap: GameMap,
         camera: Camera,
         init: function () {
@@ -3566,6 +3578,47 @@ void main() {
             canvas.addEventListener('keydown', this);
             canvas.setAttribute('tabindex', "1");
             document.getElementById("game").appendChild(canvas);
+            this.saveName = "game-save";
+            if (!localStorage.getItem(this.saveName)) {
+                this.mapRNG = RNG$1.getState();
+                this.newGame();
+                this.saveGame();
+            }
+            else {
+                this.loadGame();
+                this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+                this.camera.draw(this.player, this.gameMap, this.display);
+            }
+            var focusReminder = document.getElementById('focus-reminder');
+            canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
+            canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
+            canvas.focus();
+        },
+        handleEvent: function (e) {
+            e.preventDefault();
+            var moved;
+            switch (e.key) {
+                case 'ArrowRight':
+                    moved = this.player.move(this.gameMap, 1, 0);
+                    break;
+                case 'ArrowLeft':
+                    moved = this.player.move(this.gameMap, -1, 0);
+                    break;
+                case 'ArrowDown':
+                    moved = this.player.move(this.gameMap, 0, 1);
+                    break;
+                case 'ArrowUp':
+                    moved = this.player.move(this.gameMap, 0, -1);
+                    break;
+            }
+            if (moved) {
+                this.display.clear();
+                this.camera.draw(this.player, this.gameMap, this.display);
+                this.saveGame(); //autosave
+            }
+        },
+        newGame: function () {
+            this.seed = RNG$1.getSeed();
             this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
             var pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2), randInt(1, this.gameMap.height - 2));
             while (pt.type.name != 'floor') {
@@ -3574,31 +3627,23 @@ void main() {
                 pt = this.gameMap.getTile(x, y);
             }
             this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
-            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
-            this.camera.draw(this.player, this.gameMap, this.display);
-            var focusReminder = document.getElementById('focus-reminder');
-            canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
-            canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
-            canvas.focus();
         },
-        handleEvent: function (e) {
-            e.preventDefault();
-            switch (e.key) {
-                case 'ArrowRight':
-                    this.player.move(this.gameMap, 1, 0);
-                    break;
-                case 'ArrowLeft':
-                    this.player.move(this.gameMap, -1, 0);
-                    break;
-                case 'ArrowDown':
-                    this.player.move(this.gameMap, 0, 1);
-                    break;
-                case 'ArrowUp':
-                    this.player.move(this.gameMap, 0, -1);
-                    break;
-            }
-            this.display.clear();
-            this.camera.draw(this.player, this.gameMap, this.display);
+        saveGame: function () {
+            var data = {
+                rng: this.mapRNG,
+                width: MAP_WIDTH,
+                height: MAP_HEIGHT,
+                player: this.player
+            };
+            Store.save("" + this.saveName, data);
+        },
+        loadGame: function () {
+            var data = Store.load("" + this.saveName);
+            RNG$1.setState(data.rng);
+            this.gameMap = generate(data.width, data.height);
+            var glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
+            this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
+            this.mapRNG = data.rng;
         }
     };
 
