@@ -70,13 +70,7 @@ export default {
         RNG.setSeed((Date.now())+Math.random());
         this.mapRNG = RNG.getState();
         this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
-        let pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2),
-        randInt(1, this.gameMap.height - 2));
-        while (pt.type.name != 'floor') {
-            let x = randInt(1, this.gameMap.width - 2);
-            let y = randInt(1, this.gameMap.height - 2);
-            pt = this.gameMap.getTile(x, y);
-        } 
+        let pt = this.gameMap.placeActor()
         this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
         this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         this.camera.draw(this.player, this.gameMap, this.display);

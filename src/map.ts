@@ -1,6 +1,7 @@
 import { Display, } from "rot-js";
 import Actor from "./actor";
 import { TileType, Torch, Tile } from "./tile";
+import { randInt } from "./utils";
 
 export default class GameMap {
     width: number;
@@ -26,6 +27,16 @@ export default class GameMap {
     }
     setTile(x: number, y: number, type?: TileType, torch?: Torch, actor?: Actor) {
         this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+    }
+    placeActor(): Tile {
+        let tile: Tile = this.getTile(randInt(1, this.width - 2),
+        randInt(1, this.height - 2));
+        while (tile.type.name != 'floor') {
+            let x = randInt(1, this.width - 2);
+            let y = randInt(1, this.height - 2);
+            tile = this.getTile(x, y);
+        }
+        return tile;
     }
     draw(display: Display, x: number, y: number, w: number, h: number){
         for(let i = 0; i < w; i++){

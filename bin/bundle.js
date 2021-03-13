@@ -3474,6 +3474,10 @@ void main() {
         'floor': new TileType('floor', new Glyph('.', 'white'), false, false)
     };
 
+    function randInt(a, b) {
+        return a + Math.floor(RNG$1.getUniform() * (b - a + 1));
+    }
+
     var GameMap = /** @class */ (function () {
         function GameMap(width, height, tiles) {
             if (width) {
@@ -3497,6 +3501,15 @@ void main() {
         GameMap.prototype.setTile = function (x, y, type, torch, actor) {
             this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
         };
+        GameMap.prototype.placeActor = function () {
+            var tile = this.getTile(randInt(1, this.width - 2), randInt(1, this.height - 2));
+            while (tile.type.name != 'floor') {
+                var x = randInt(1, this.width - 2);
+                var y = randInt(1, this.height - 2);
+                tile = this.getTile(x, y);
+            }
+            return tile;
+        };
         GameMap.prototype.draw = function (display, x, y, w, h) {
             for (var i = 0; i < w; i++) {
                 for (var j = 0; j < h; j++) {
@@ -3511,10 +3524,6 @@ void main() {
         };
         return GameMap;
     }());
-
-    function randInt(a, b) {
-        return a + Math.floor(RNG$1.getUniform() * (b - a + 1));
-    }
 
     var Camera = /** @class */ (function () {
         function Camera(width, height) {
@@ -3620,12 +3629,7 @@ void main() {
             RNG$1.setSeed((Date.now()) + Math.random());
             this.mapRNG = RNG$1.getState();
             this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
-            var pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2), randInt(1, this.gameMap.height - 2));
-            while (pt.type.name != 'floor') {
-                var x = randInt(1, this.gameMap.width - 2);
-                var y = randInt(1, this.gameMap.height - 2);
-                pt = this.gameMap.getTile(x, y);
-            }
+            var pt = this.gameMap.placeActor();
             this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
             this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
             this.camera.draw(this.player, this.gameMap, this.display);
