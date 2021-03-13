@@ -3590,8 +3590,8 @@ void main() {
         }
     };
 
-    var MAP_WIDTH = 200;
-    var MAP_HEIGHT = 200;
+    var MAP_WIDTH = 100;
+    var MAP_HEIGHT = 50;
     var CAMERA_WIDTH = 80;
     var CAMERA_HEIGHT = 35;
     var Game = {

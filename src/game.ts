@@ -7,8 +7,8 @@ import Camera from "./camera";
 import { generate } from "./mapgen";
 import Store, { GameData } from "./store";
 
-const MAP_WIDTH = 200;
-const MAP_HEIGHT = 200;
+const MAP_WIDTH = 100;
+const MAP_HEIGHT = 50;
 const CAMERA_WIDTH = 80;
 const CAMERA_HEIGHT = 35;
 
