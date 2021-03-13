@@ -20,7 +20,7 @@ export default class Actor {
             return false;
         }
         let tile = gameMap.getTile(nx, ny);
-        if (tile.type.blockMove) {
+        if (tile.type.blockMove || tile.actor) {
             return false;
         }
 

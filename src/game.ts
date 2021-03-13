@@ -97,7 +97,8 @@ export default {
         let glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
         this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
         this.gameMap.setTile(this.player.x, this.player.y, this.player);
-        this.monster = new Actor(data.monster.name, data.monster.x, data.monster.y, glyph);
+        let mGlyph = new Glyph(data.monster.glyph.ch, data.monster.glyph.fg, data.monster.glyph.bg);
+        this.monster = new Actor(data.monster.name, data.monster.x, data.monster.y, mGlyph);
         this.gameMap.setTile(this.monster.x, this.monster.y, this.monster);
         this.mapRNG = data.rng;
         this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
