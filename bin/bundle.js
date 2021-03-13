@@ -3400,6 +3400,35 @@ void main() {
         return Glyph;
     }());
 
+    var Log = {
+        messages: new Array(),
+        size: function () {
+            return this.messages.length;
+        },
+        msg: function (text, limit) {
+            if (limit === void 0) { limit = 5; }
+            this.messages.push(text);
+            if (this.messages.length > limit) {
+                this.messages = this.messages.slice(1);
+            }
+        },
+        get: function (index) {
+            return this.messages[index];
+        },
+        all: function () {
+            return this.messages;
+        },
+        load: function (messages, limit) {
+            if (limit === void 0) { limit = 5; }
+            if (messages.length > limit) {
+                this.messages = messages.slice(-limit);
+            }
+            else {
+                this.messages = messages;
+            }
+        }
+    };
+
     var Actor = /** @class */ (function () {
         function Actor(name, x, y, glyph) {
             this.name = name;
@@ -3414,8 +3443,12 @@ void main() {
                 return false;
             }
             var tile = gameMap.getTile(nx, ny);
-            if (tile.type.blockMove || tile.actor) {
+            if (tile.type.blockMove) {
                 return false;
+            }
+            if (tile.actor) {
+                Log.msg(this.name + " attacks " + tile.actor.name);
+                return true;
             }
             gameMap.setTile(this.x, this.y, null);
             this.x = nx;
@@ -3549,7 +3582,14 @@ void main() {
         function Camera(width, height) {
             this.width = width;
             this.height = height;
+            this.messages = [];
         }
+        Camera.prototype.msg = function (text) {
+            this.messages.push(text);
+            if (this.messages.length > 5) {
+                this.messages = this.messages.slice(1);
+            }
+        };
         Camera.prototype.draw = function (actor, gameMap, display) {
             var half_width = Math.floor(this.width / 2);
             var half_height = Math.floor(this.height / 2);
@@ -3557,6 +3597,9 @@ void main() {
             var y = actor.y - half_height;
             gameMap.draw(display, x, y, this.width, this.height, ['Player']);
             actor.draw(display, half_width, half_height);
+            for (var i = 0; i < Log.size(); i++) {
+                display.drawText(0, this.height + i, Log.get(i), this.width);
+            }
         };
         return Camera;
     }());
@@ -3591,9 +3634,10 @@ void main() {
     };
 
     var MAP_WIDTH = 100;
-    var MAP_HEIGHT = 50;
+    var MAP_HEIGHT = 45;
     var CAMERA_WIDTH = 80;
-    var CAMERA_HEIGHT = 35;
+    var CAMERA_HEIGHT = 30;
+    var LOG_LENGTH = 5;
     var Game = {
         display: Display,
         player: Actor,
@@ -3601,8 +3645,11 @@ void main() {
         mapRNG: Array,
         gameMap: GameMap,
         camera: Camera,
+        messages: Array,
         init: function () {
-            this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
+            this.messages = [];
+            this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT + LOG_LENGTH });
+            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
             var canvas = this.display.getContainer();
             canvas.addEventListener('keydown', this);
             canvas.setAttribute('tabindex', "1");
@@ -3655,7 +3702,6 @@ void main() {
             this.monster = new Actor('Rat', mt.x, mt.y, new Glyph('r', 'lightbrown'));
             this.gameMap.setTile(mt.x, mt.y, this.monster);
             console.log(mt);
-            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
             this.camera.draw(this.player, this.gameMap, this.display);
             this.refocus();
         },
@@ -3665,7 +3711,8 @@ void main() {
                 width: MAP_WIDTH,
                 height: MAP_HEIGHT,
                 player: this.player,
-                monster: this.monster
+                monster: this.monster,
+                messages: Log.all()
             };
             Store.save("" + this.saveName, data);
         },
@@ -3680,7 +3727,7 @@ void main() {
             this.monster = new Actor(data.monster.name, data.monster.x, data.monster.y, mGlyph);
             this.gameMap.setTile(this.monster.x, this.monster.y, this.monster);
             this.mapRNG = data.rng;
-            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+            Log.load(data.messages);
             this.camera.draw(this.player, this.gameMap, this.display);
             this.refocus();
         }

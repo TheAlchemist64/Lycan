@@ -5,12 +5,14 @@ import GameMap from "./map";
 import { randInt } from "./utils";
 import Camera from "./camera";
 import { generate } from "./mapgen";
+import Log from "./msglog";
 import Store, { GameData } from "./store";
 
 const MAP_WIDTH = 100;
-const MAP_HEIGHT = 50;
+const MAP_HEIGHT = 45;
 const CAMERA_WIDTH = 80;
-const CAMERA_HEIGHT = 35;
+const CAMERA_HEIGHT = 30;
+const LOG_LENGTH = 5;
 
 export default {
     display: Display,
@@ -19,8 +21,11 @@ export default {
     mapRNG: Array,
     gameMap: GameMap,
     camera: Camera,
+    messages: Array,
     init(): void {
-        this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT });
+        this.messages = [];
+        this.display = new Display({ width: CAMERA_WIDTH, height: CAMERA_HEIGHT + LOG_LENGTH });
+        this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         const canvas = this.display.getContainer();
         canvas.addEventListener('keydown', this);
         canvas.setAttribute('tabindex', "1");
@@ -76,7 +81,6 @@ export default {
         this.monster = new Actor('Rat', mt.x, mt.y, new Glyph('r', 'lightbrown'));
         this.gameMap.setTile(mt.x, mt.y, this.monster);
         console.log(mt);
-        this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         this.camera.draw(this.player, this.gameMap, this.display);
         this.refocus();
     },
@@ -86,7 +90,8 @@ export default {
             width: MAP_WIDTH,
             height: MAP_HEIGHT,
             player: this.player,
-            monster: this.monster
+            monster: this.monster,
+            messages: Log.all()
         }
         Store.save(`${this.saveName}`, data);
     },
@@ -101,7 +106,7 @@ export default {
         this.monster = new Actor(data.monster.name, data.monster.x, data.monster.y, mGlyph);
         this.gameMap.setTile(this.monster.x, this.monster.y, this.monster);
         this.mapRNG = data.rng;
-        this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+        Log.load(data.messages);
         this.camera.draw(this.player, this.gameMap, this.display);
         this.refocus();
     }

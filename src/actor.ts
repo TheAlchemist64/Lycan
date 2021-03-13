@@ -1,6 +1,7 @@
 import { Display } from "rot-js";
 import Glyph from "./glyph";
 import GameMap from "./map";
+import Log from "./msglog";
 
 export default class Actor {
     name: string;
@@ -20,8 +21,12 @@ export default class Actor {
             return false;
         }
         let tile = gameMap.getTile(nx, ny);
-        if (tile.type.blockMove || tile.actor) {
+        if (tile.type.blockMove) {
             return false;
+        }
+        if (tile.actor) {
+            Log.msg(`${this.name} attacks ${tile.actor.name}`);
+            return true;
         }
 
         gameMap.setTile(this.x, this.y, null);

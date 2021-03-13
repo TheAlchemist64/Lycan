@@ -9,6 +9,7 @@ export interface GameData {
     height: number;
     player: Actor;
     monster: Actor;
+    messages: string[];
 }
 
 export default {
