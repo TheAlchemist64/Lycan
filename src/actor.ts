@@ -20,7 +20,7 @@ export default class Actor {
             return false;
         }
         let tile = gameMap.getTile(nx, ny);
-        if (tile.type.name == 'wall') {
+        if (tile.type.blockMove) {
             return false;
         }
 

@@ -3414,7 +3414,7 @@ void main() {
                 return false;
             }
             var tile = gameMap.getTile(nx, ny);
-            if (tile.type.name == 'wall') {
+            if (tile.type.blockMove) {
                 return false;
             }
             gameMap.setTile(this.x, this.y, null);
