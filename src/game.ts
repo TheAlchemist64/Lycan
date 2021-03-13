@@ -26,23 +26,23 @@ export default {
         canvas.setAttribute('tabindex', "1");
         document.getElementById("game").appendChild(canvas);
 
+        const focusReminder = document.getElementById('focus-reminder');
+        canvas.addEventListener('blur', () => { focusReminder.style.visibility = 'visible'; });
+        canvas.addEventListener('focus', () => { focusReminder.style.visibility = 'hidden'; });
+        canvas.focus();
+
         this.saveName = "game-save";
         
         if (!localStorage.getItem(this.saveName)){
-            this.mapRNG = RNG.getState();
             this.newGame();
             this.saveGame();
         }
         else {
             this.loadGame();
-            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
-            this.camera.draw(this.player, this.gameMap, this.display);
         }
-
-        const focusReminder = document.getElementById('focus-reminder');
-        canvas.addEventListener('blur', () => { focusReminder.style.visibility = 'visible'; });
-        canvas.addEventListener('focus', () => { focusReminder.style.visibility = 'hidden'; });
-        canvas.focus();
+    },
+    refocus(): void {
+        this.display.getContainer().focus();
     },
     handleEvent(e) {
         e.preventDefault();
@@ -64,11 +64,11 @@ export default {
         if (moved){
             this.display.clear();
             this.camera.draw(this.player, this.gameMap, this.display);
-            this.saveGame(); //autosave
         }
     },
     newGame() {
-        this.seed = RNG.getSeed();
+        RNG.setSeed((Date.now())+Math.random());
+        this.mapRNG = RNG.getState();
         this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
         let pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2),
         randInt(1, this.gameMap.height - 2));
@@ -78,6 +78,9 @@ export default {
             pt = this.gameMap.getTile(x, y);
         } 
         this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
+        this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+        this.camera.draw(this.player, this.gameMap, this.display);
+        this.refocus();
     },
     saveGame(): void {
         const data: GameData = {
@@ -95,5 +98,8 @@ export default {
         let glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
         this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
         this.mapRNG = data.rng;
+        this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+        this.camera.draw(this.player, this.gameMap, this.display);
+        this.refocus();
     }
 }

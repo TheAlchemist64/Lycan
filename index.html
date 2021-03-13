@@ -17,16 +17,25 @@
             top: 267px;
             z-index: 2;
         }
+        #file {
+            max-width: max-content;
+            margin: auto;
+        }
     </style>
 </head>
 <body>
     <div id="status-bars"></div>
     <figure>
         <div id="game">
-            <h3 id="focus-reminder">Click Game to Resume Play</h3>
+            <h3 id="focus-reminder" style="visibility:hidden">Click Game to Resume Play</h3>
         </div>
     </figure>
     <div id="player-info"></div>
+    <div id="file">
+        <button id="save">Save Game</button>
+        <button id="load">Load Game</button>
+        <button id="reset">Reset Game</button>
+    </div>
     <script src="bin/bundle.js"></script>
 </body>
 </html>

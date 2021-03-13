@@ -3578,21 +3578,21 @@ void main() {
             canvas.addEventListener('keydown', this);
             canvas.setAttribute('tabindex', "1");
             document.getElementById("game").appendChild(canvas);
+            var focusReminder = document.getElementById('focus-reminder');
+            canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
+            canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
+            canvas.focus();
             this.saveName = "game-save";
             if (!localStorage.getItem(this.saveName)) {
-                this.mapRNG = RNG$1.getState();
                 this.newGame();
                 this.saveGame();
             }
             else {
                 this.loadGame();
-                this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
-                this.camera.draw(this.player, this.gameMap, this.display);
             }
-            var focusReminder = document.getElementById('focus-reminder');
-            canvas.addEventListener('blur', function () { focusReminder.style.visibility = 'visible'; });
-            canvas.addEventListener('focus', function () { focusReminder.style.visibility = 'hidden'; });
-            canvas.focus();
+        },
+        refocus: function () {
+            this.display.getContainer().focus();
         },
         handleEvent: function (e) {
             e.preventDefault();
@@ -3614,11 +3614,11 @@ void main() {
             if (moved) {
                 this.display.clear();
                 this.camera.draw(this.player, this.gameMap, this.display);
-                this.saveGame(); //autosave
             }
         },
         newGame: function () {
-            this.seed = RNG$1.getSeed();
+            RNG$1.setSeed((Date.now()) + Math.random());
+            this.mapRNG = RNG$1.getState();
             this.gameMap = generate(MAP_WIDTH, MAP_HEIGHT);
             var pt = this.gameMap.getTile(randInt(1, this.gameMap.width - 2), randInt(1, this.gameMap.height - 2));
             while (pt.type.name != 'floor') {
@@ -3627,6 +3627,9 @@ void main() {
                 pt = this.gameMap.getTile(x, y);
             }
             this.player = new Actor('Player', pt.x, pt.y, new Glyph('@', 'lightgreen'));
+            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+            this.camera.draw(this.player, this.gameMap, this.display);
+            this.refocus();
         },
         saveGame: function () {
             var data = {
@@ -3644,9 +3647,28 @@ void main() {
             var glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
             this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
             this.mapRNG = data.rng;
+            this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
+            this.camera.draw(this.player, this.gameMap, this.display);
+            this.refocus();
         }
     };
 
+    var focusReminder = document.getElementById('focus-reminder');
+    function setStorageButton(id, fn, text) {
+        document.getElementById(id).addEventListener("mousedown", function (e) {
+            focusReminder.innerHTML = text;
+        });
+        document.getElementById(id).addEventListener("click", function (e) {
+            fn();
+            focusReminder.innerHTML = 'Click Game to Resume Play';
+        });
+    }
+    setStorageButton('save', Game.saveGame.bind(Game), 'Saving...');
+    setStorageButton('load', Game.loadGame.bind(Game), 'Loading...');
+    setStorageButton('reset', function () {
+        Game.newGame();
+        Game.saveGame();
+    }, 'Generating New Game...');
     Game.init();
 
 }());
