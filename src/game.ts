@@ -91,6 +91,7 @@ export default {
         this.gameMap = generate(data.width, data.height);
         let glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
         this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
+        this.gameMap.setTile(this.player.x, this.player.y, this.player);
         this.mapRNG = data.rng;
         this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         this.camera.draw(this.player, this.gameMap, this.display);

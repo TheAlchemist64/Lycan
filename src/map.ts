@@ -22,16 +22,29 @@ export default class GameMap {
     inBounds(x: number, y: number, padding: number = 0): boolean {
         return x > padding - 1 && x < this.width - padding && y > padding - 1 && y < this.height - padding;
     }
+    hasTile(x: number, y: number): boolean {
+        return this.tiles.has(GameMap.key(x, y));
+    }
     getTile(x: number, y: number): Tile {
         return this.tiles.get(GameMap.key(x, y));
     }
-    setTile(x: number, y: number, type?: TileType, torch?: Torch, actor?: Actor) {
-        this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+    setTile(x: number, y: number, actor?: Actor);
+    setTile(x: number, y: number, actor?: Actor, type?: TileType);
+    setTile(x: number, y: number, actor?: Actor, type?: TileType, torch?: Torch) {
+        if (type !== undefined && torch !== undefined) {
+            this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+        }
+        else if (type !== undefined) {
+            this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, Torch.NONE, actor));
+        }
+        else{
+            this.getTile(x, y).actor = actor;
+        }
     }
     placeActor(): Tile {
         let tile: Tile = this.getTile(randInt(1, this.width - 2),
         randInt(1, this.height - 2));
-        while (tile.type.name != 'floor') {
+        while (tile.type.name != 'floor' || tile.actor != null) {
             let x = randInt(1, this.width - 2);
             let y = randInt(1, this.height - 2);
             tile = this.getTile(x, y);

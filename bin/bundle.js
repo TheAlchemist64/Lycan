@@ -3417,8 +3417,10 @@ void main() {
             if (tile.type.name == 'wall') {
                 return false;
             }
+            gameMap.setTile(this.x, this.y, null);
             this.x = nx;
             this.y = ny;
+            gameMap.setTile(nx, ny, this);
             return true;
         };
         Actor.prototype.draw = function (display, x, y) {
@@ -3495,15 +3497,26 @@ void main() {
             if (padding === void 0) { padding = 0; }
             return x > padding - 1 && x < this.width - padding && y > padding - 1 && y < this.height - padding;
         };
+        GameMap.prototype.hasTile = function (x, y) {
+            return this.tiles.has(GameMap.key(x, y));
+        };
         GameMap.prototype.getTile = function (x, y) {
             return this.tiles.get(GameMap.key(x, y));
         };
-        GameMap.prototype.setTile = function (x, y, type, torch, actor) {
-            this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+        GameMap.prototype.setTile = function (x, y, actor, type, torch) {
+            if (type !== undefined && torch !== undefined) {
+                this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, torch, actor));
+            }
+            else if (type !== undefined) {
+                this.tiles.set(GameMap.key(x, y), new Tile(x, y, type, Torch.NONE, actor));
+            }
+            else {
+                this.getTile(x, y).actor = actor;
+            }
         };
         GameMap.prototype.placeActor = function () {
             var tile = this.getTile(randInt(1, this.width - 2), randInt(1, this.height - 2));
-            while (tile.type.name != 'floor') {
+            while (tile.type.name != 'floor' || tile.actor != null) {
                 var x = randInt(1, this.width - 2);
                 var y = randInt(1, this.height - 2);
                 tile = this.getTile(x, y);
@@ -3546,13 +3559,13 @@ void main() {
         //Initialize all map cells to Wall
         for (var x = 0; x < width; x++) {
             for (var y = 0; y < height; y++) {
-                result.setTile(x, y, TileTypes.wall, Torch.NONE);
+                result.setTile(x, y, null, TileTypes.wall);
             }
         }
         var digger = new MapGen.Cellular(width, height);
         digger.randomize(0.5);
         var cb = function (x, y, value) {
-            result.setTile(x, y, value ? TileTypes.wall : TileTypes.floor);
+            result.setTile(x, y, null, value ? TileTypes.wall : TileTypes.floor);
         };
         for (var i = 0; i < 2; i++) {
             digger.create(cb);
@@ -3650,6 +3663,7 @@ void main() {
             this.gameMap = generate(data.width, data.height);
             var glyph = new Glyph(data.player.glyph.ch, data.player.glyph.fg, data.player.glyph.bg);
             this.player = new Actor(data.player.name, data.player.x, data.player.y, glyph);
+            this.gameMap.setTile(this.player.x, this.player.y, this.player);
             this.mapRNG = data.rng;
             this.camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
             this.camera.draw(this.player, this.gameMap, this.display);

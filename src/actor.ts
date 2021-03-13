@@ -23,8 +23,13 @@ export default class Actor {
         if (tile.type.name == 'wall') {
             return false;
         }
+
+        gameMap.setTile(this.x, this.y, null);
+
         this.x = nx;
         this.y = ny;
+
+        gameMap.setTile(nx, ny, this);
 
         return true;
     }
